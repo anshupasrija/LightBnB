@@ -105,8 +105,8 @@ const getAllReservations = function(guest_id, limit = 10) {
   ORDER BY reservations.start_date
   LIMIT $2;`,[guest_id,limit])
   .then((result) => {
-    console.log('this is reservations ',result.rows[0]);
-     return result.rows[0];
+    console.log('this is reservations ',result.rows);
+     return result.rows;
   })
   .catch((err) => {
      console.log(err.message);
@@ -122,7 +122,9 @@ exports.getAllReservations = getAllReservations;
  * @param {*} limit The number of results to return.
  * @return {Promise<[{}]>}  A promise to the properties.
  */
- const getAllProperties = function (options, limit = 10) {
+
+const getAllProperties = function (options, limit = 10) {
+   console.log('we hit allproperties');
   // 1
   const queryParams = [];
   // 2
@@ -133,27 +135,28 @@ exports.getAllReservations = getAllReservations;
   `;
 
   // 3
-  if(options.owner_id){
-    queryParams.push(`%${option.city}%`);
+  if (options.owner_id) {
+    queryParams.push(`%${options.city}%`);
     queryString += `AND city LIKE $${queryParams.length} `;
   }
 
   if (options.city) {
     queryParams.push(`%${options.city}%`);
-    queryString += `AND  city LIKE $${queryParams.length} `;
+    queryString += `AND city LIKE $${queryParams.length} `;
   }
-  
-  if(options.minimum_price_per_night){
-    queryParams.push(`%${options.minimum_price_per_night}%`);
-    queryString += `AND minimum_price_per_night LIKE $${queryParams.length}` ;
+
+  if (options.minumum_price_per_night) {
+    queryParams.push(`%${options.minumum_price_per_night}%`);
+    queryString += `AND cost_per_night < $${queryParams.length} `;
   }
+
   if (options.maximum_price_per_night) {
     queryParams.push(`%${options.maximum_price_per_night}%`);
-    queryString += `AND maximum_price_per_night LIKE $${queryParams.length} `;
+    queryString += `AND cost_per_night > $${queryParams.length} `;
   }
   if (options.minumum_rating) {
     queryParams.push(`%${options.minumum_rating}%`);
-    queryString += `AND minumum_rating LIKE $${queryParams.length} `;
+    queryString += `AND property_reviews.rating >= $${queryParams.length} `;
   }
   
 
@@ -170,7 +173,7 @@ exports.getAllReservations = getAllReservations;
   console.log(queryString, queryParams);
 
   // 6
-  return pool.query(queryString, queryParams).then((res) => res.rows);
+  return pool.query(queryString, queryParams).then((result) => result.rows);
 };
 
   // const limitedProperties = {};
