@@ -129,33 +129,35 @@ const getAllProperties = function (options, limit = 10) {
   const queryParams = [];
   // 2
   let queryString = `
-  SELECT properties.*, avg(property_reviews.rating) as average_rating
+  SELECT properties.*,
+  avg(property_reviews.rating) as average_rating
   FROM properties
-  JOIN property_reviews ON properties.id = property_id
+  JOIN property_reviews ON properties.id = property_reviews.property_id 
+  
   `;
 
   // 3
-  if (options.owner_id) {
-    queryParams.push(`%${options.city}%`);
-    queryString += `AND city LIKE $${queryParams.length} `;
-  }
-
+  
   if (options.city) {
     queryParams.push(`%${options.city}%`);
     queryString += `AND city LIKE $${queryParams.length} `;
   }
+  if (options.owner_id) {
+    queryParams.push(options.owner_id);
+    queryString += `AND owner_id= $${queryParams.length} `;
+  }
 
   if (options.minumum_price_per_night) {
-    queryParams.push(`%${options.minumum_price_per_night}%`);
+    queryParams.push(options.minumum_price_per_night);
     queryString += `AND cost_per_night < $${queryParams.length} `;
   }
 
   if (options.maximum_price_per_night) {
-    queryParams.push(`%${options.maximum_price_per_night}%`);
+    queryParams.push(options.maximum_price_per_night);
     queryString += `AND cost_per_night > $${queryParams.length} `;
   }
   if (options.minumum_rating) {
-    queryParams.push(`%${options.minumum_rating}%`);
+    queryParams.push(options.minumum_rating);
     queryString += `AND property_reviews.rating >= $${queryParams.length} `;
   }
   
@@ -195,8 +197,9 @@ const addProperty = function(property) {
   // property.id = propertyId;
   // properties[propertyId] = property;
   // return Promise.resolve(property);
+  console.log('property', property);
   return  pool
-  .query(`INSERT INTO properties(owner_id:,
+  .query(`INSERT INTO properties(owner_id,
     title,
     description ,
     thumbnail_photo_url,
@@ -224,10 +227,10 @@ const addProperty = function(property) {
       property.parking_spaces,
       property.number_of_bathrooms,
       property.number_of_bedrooms,
-      true])
+       true])
   .then((result) => {
    
-     return result.rows[0];
+     return result.rows;
   })
   .catch((err) => {
      console.log(err.message);
